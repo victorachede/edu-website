@@ -5,6 +5,7 @@ import { Net } from './lib/net.js'
 import { createMarket } from './zones/market.js'
 import { createBridge } from './zones/bridge.js'
 import { createCreator, loadProfile, saveProfile } from './ui.js'
+import { listCharacters } from './lib/models.js'
 
 const bar = document.querySelector('#bar i')
 const loadingEl = document.getElementById('loading')
@@ -22,6 +23,7 @@ scene.add(player.root)
 
 let profile = loadProfile()
 let creating = false
+let modelList = []
 let previewSnap = true
 let started = false // don't join the server until the player has chosen a look
 let creator = null
@@ -63,6 +65,7 @@ function openCreator() {
   zone.setCrowd?.(false)
   placeEl.style.display = 'none'
   creator = createCreator(creatorEl, profile, {
+    models: modelList,
     onChange: ({ name, look }) => {
       profile = { ...profile, name, look }
       player.setLook(look)
@@ -131,9 +134,11 @@ setTimeout(() => {
   load(params.get('zone') === 'bridge' ? 'bridge' : 'market')
   bar.style.width = '100%'
   loadingEl.remove()
-  if (params.has('skip') && profile.name) closeCreatorFirst()
-  else openCreator()
   requestAnimationFrame(frame)
+  listCharacters().then((l) => { modelList = l }).catch(() => {}).finally(() => {
+    if (params.has('skip') && profile.name) closeCreatorFirst()
+    else openCreator()
+  })
 }, 60)
 
 function closeCreatorFirst() { creating = false; player.frozen = false; started = true; net.connect(zone.id, me) }

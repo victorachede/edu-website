@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import PartySocket from 'partysocket'
-import { buildCharacter, animateCharacter } from './character.js'
+import { buildAvatar, tickAvatar, disposeAvatar } from './avatar.js'
 
 // Where the game server lives. Set VITE_PARTYKIT_HOST when you deploy it.
 const HOST = import.meta.env.VITE_PARTYKIT_HOST || (import.meta.env.DEV ? `${location.hostname}:1999` : '')
@@ -40,9 +40,9 @@ class Remote {
   set(p) {
     this.name = p.name
     this.look = p.look
-    if (this.model) this.group.remove(this.model)
+    if (this.model) { this.group.remove(this.model); disposeAvatar(this.model) }
     if (this.tag) this.group.remove(this.tag)
-    this.model = buildCharacter(p.look, { lod: 'high' })
+    this.model = buildAvatar(p.look, { lod: 'high' })
     this.model.traverse((o) => { if (o.isMesh) o.castShadow = true })
     this.group.add(this.model)
     this.tag = nameTag(p.name)
@@ -59,7 +59,7 @@ class Remote {
     d = Math.atan2(Math.sin(d), Math.cos(d))
     this.yaw += d * k
     this.model.rotation.y = this.yaw
-    animateCharacter(this.model, this.sp, t)
+    tickAvatar(this.model, this.sp, t, dt)
   }
 }
 

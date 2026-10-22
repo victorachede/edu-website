@@ -31,6 +31,7 @@ export function sanitizeLook(l = {}) {
     outfit: outfits.includes(l.outfit) ? l.outfit : 'shirt',
     c1: hex(l.c1, DEFAULT_LOOK.c1),
     c2: hex(l.c2, DEFAULT_LOOK.c2),
+    model: /^[a-z0-9_-]{1,32}$/.test(l.model) ? l.model : '', // id of a realistic model from the manifest, or '' for the custom character
   }
 }
 

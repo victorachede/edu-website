@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import { buildCharacter, animateCharacter, DEFAULT_LOOK } from './character.js'
+import { DEFAULT_LOOK } from './character.js'
+import { buildAvatar, tickAvatar, disposeAvatar } from './avatar.js'
 
 // Third-person walker: WASD/arrows or a touch joystick, drag to orbit, wheel to zoom.
 export class Player {
@@ -65,8 +66,8 @@ export class Player {
 
   setLook(look) {
     this.look = look
-    if (this.model) this.root.remove(this.model)
-    this.model = buildCharacter(look, { lod: 'high' })
+    if (this.model) { this.root.remove(this.model); disposeAvatar(this.model) }
+    this.model = buildAvatar(look, { lod: 'high' })
     this.model.traverse((o) => { if (o.isMesh) o.castShadow = true })
     this.root.add(this.model)
   }
@@ -83,7 +84,7 @@ export class Player {
       this.speed = 0
       this.root.position.copy(this.pos)
       this.model.rotation.y = this.yaw
-      animateCharacter(this.model, 0, performance.now() / 1000)
+      tickAvatar(this.model, 0, performance.now() / 1000, dt)
       return
     }
     let ix = 0, iz = 0
@@ -124,7 +125,7 @@ export class Player {
 
     this.root.position.copy(this.pos)
     this.model.rotation.y = this.yaw
-    animateCharacter(this.model, this.speed, performance.now() / 1000)
+    tickAvatar(this.model, this.speed, performance.now() / 1000, dt)
 
     // camera sits behind the player, orbiting by yaw/pitch
     const head = new THREE.Vector3(this.pos.x, this.pos.y + 1.55, this.pos.z)

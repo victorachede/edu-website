@@ -2,3 +2,9 @@ node_modules
 dist
 .vercel
 .partykit
+# realistic models are not committed (licences); see public/models/README.md
+public/models/**/*.glb
+public/models/**/*.gltf
+public/models/**/*.fbx
+public/models/**/*.bin
+public/models/manifest.json

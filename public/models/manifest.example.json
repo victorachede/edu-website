@@ -1,0 +1,11 @@
+{
+  "characters": [
+    { "id": "amaka", "name": "Amaka", "file": "characters/amaka.fbx" },
+    { "id": "tunde", "name": "Tunde", "file": "characters/tunde.fbx", "scale": 1 }
+  ],
+  "animations": {
+    "idle": "anims/idle.fbx",
+    "walk": "anims/walk.fbx",
+    "run": "anims/run.fbx"
+  }
+}

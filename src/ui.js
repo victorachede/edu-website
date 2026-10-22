@@ -23,7 +23,7 @@ const el = (tag, cls, html) => {
 }
 
 // The character creator. Every change calls onChange so the 3D preview updates live.
-export function createCreator(root, profile, { onChange, onDone }) {
+export function createCreator(root, profile, { onChange, onDone, models = [] }) {
   let { name, look } = profile
   const state = () => ({ name, look })
 
@@ -34,8 +34,8 @@ export function createCreator(root, profile, { onChange, onDone }) {
   const body = el('div', 'cr-body')
   root.appendChild(body)
 
-  const section = (title) => {
-    const s = el('div', 'cr-sec')
+  const section = (title, cls = '') => {
+    const s = el('div', 'cr-sec ' + cls)
     s.appendChild(el('label', '', title))
     body.appendChild(s)
     return s
@@ -76,18 +76,19 @@ export function createCreator(root, profile, { onChange, onDone }) {
   nameSec.appendChild(nameInput)
 
   const rows = {}
-  rows.frame = choices(section('Build'), FRAMES.map(([, l], i) => [i, l]), 'frame')
+  if (models.length) rows.model = choices(section('Style'), [['', 'Custom'], ...models.map((m) => [m.id, m.name || m.id])], 'model')
+  rows.frame = choices(section('Build', 'cr-proc'), FRAMES.map(([, l], i) => [i, l]), 'frame')
   const hs = section('Height')
   const range = el('input', 'cr-range')
   range.type = 'range'; range.min = '0.92'; range.max = '1.08'; range.step = '0.01'
   range.oninput = () => { look = sanitizeLook({ ...look, height: +range.value }); onChange(state()) }
   hs.appendChild(range)
-  rows.skin = swatches(section('Skin'), SKIN_TONES, 'skin', true)
-  rows.hair = choices(section('Hair'), HAIR_STYLES, 'hair')
-  rows.hairColor = swatches(section('Hair colour'), HAIR_COLORS, 'hairColor', true)
-  rows.outfit = choices(section('Outfit'), OUTFITS, 'outfit')
-  rows.c1 = swatches(section('Main colour'), COLOR_SWATCHES, 'c1', false)
-  rows.c2 = swatches(section('Second colour'), COLOR_SWATCHES, 'c2', false)
+  rows.skin = swatches(section('Skin', 'cr-proc'), SKIN_TONES, 'skin', true)
+  rows.hair = choices(section('Hair', 'cr-proc'), HAIR_STYLES, 'hair')
+  rows.hairColor = swatches(section('Hair colour', 'cr-proc'), HAIR_COLORS, 'hairColor', true)
+  rows.outfit = choices(section('Outfit', 'cr-proc'), OUTFITS, 'outfit')
+  rows.c1 = swatches(section('Main colour', 'cr-proc'), COLOR_SWATCHES, 'c1', false)
+  rows.c2 = swatches(section('Second colour', 'cr-proc'), COLOR_SWATCHES, 'c2', false)
 
   const foot = el('div', 'cr-foot')
   const rnd = el('button', 'cr-btn ghost', 'Randomise')
@@ -104,6 +105,8 @@ export function createCreator(root, profile, { onChange, onDone }) {
 
   function sync() {
     const mark = (row, test) => row.querySelectorAll('button').forEach((b) => b.classList.toggle('on', test(b.dataset.v)))
+    if (rows.model) mark(rows.model, (v) => v === look.model)
+    body.classList.toggle('model-on', !!look.model)
     mark(rows.frame, (v) => +v === look.frame)
     mark(rows.skin, (v) => +v === look.skin)
     mark(rows.hair, (v) => v === look.hair)

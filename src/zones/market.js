@@ -333,6 +333,7 @@ export function createMarket({ renderer }) {
     spawn: { x: 0, z: 56, yaw: Math.PI },
     heightAt: () => 0,
     colliders,
+    setCrowd(v) { crowdGroup.visible = v },
     fogDensity: 0.0042,
     sunAzimuth: 215,
     bounds: { x0: -75, x1: 75, z0: -80, z1: 76 },
@@ -348,8 +349,7 @@ export function createMarket({ renderer }) {
         animatePerson(c.p, c.speed, t)
       }
       for (const v of vendors) {
-        v.v.userData.hip.rotation.z = Math.sin(t * 0.8 + v.ph) * 0.02
-        v.v.userData.arms[0].rotation.x = Math.sin(t * 1.3 + v.ph) * 0.18
+        animatePerson(v.v, 0, t)
       }
     },
   }

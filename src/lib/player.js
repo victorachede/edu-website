@@ -1,6 +1,5 @@
 import * as THREE from 'three'
-import { makePerson, animatePerson } from './person.js'
-import { rng } from './textures.js'
+import { buildCharacter, animateCharacter, DEFAULT_LOOK } from './character.js'
 
 // Third-person walker: WASD/arrows or a touch joystick, drag to orbit, wheel to zoom.
 export class Player {
@@ -15,8 +14,10 @@ export class Player {
     this.keys = new Set()
     this.joy = { x: 0, y: 0 }
     this.speed = 0
-    this.model = makePerson(rng(7), { top: '#1f7a4a', bottom: '#2a2a33', female: false, height: 1.05 })
-    this.model.traverse((o) => { if (o.isMesh) o.castShadow = true })
+    this.root = new THREE.Group()
+    this.look = { ...DEFAULT_LOOK }
+    this.frozen = false
+    this.setLook(this.look)
     this.dom = dom
 
     addEventListener('keydown', (e) => { this.keys.add(e.code); if (e.code === 'Space') e.preventDefault() })
@@ -62,6 +63,14 @@ export class Player {
     }
   }
 
+  setLook(look) {
+    this.look = look
+    if (this.model) this.root.remove(this.model)
+    this.model = buildCharacter(look, { lod: 'high' })
+    this.model.traverse((o) => { if (o.isMesh) o.castShadow = true })
+    this.root.add(this.model)
+  }
+
   place(zone) {
     this.pos.set(zone.spawn.x, zone.heightAt(zone.spawn.x, zone.spawn.z), zone.spawn.z)
     this.yaw = zone.spawn.yaw
@@ -70,6 +79,13 @@ export class Player {
   }
 
   update(dt, zone) {
+    if (this.frozen) {
+      this.speed = 0
+      this.root.position.copy(this.pos)
+      this.model.rotation.y = this.yaw
+      animateCharacter(this.model, 0, performance.now() / 1000)
+      return
+    }
     let ix = 0, iz = 0
     if (this.keys.has('KeyW') || this.keys.has('ArrowUp')) iz -= 1
     if (this.keys.has('KeyS') || this.keys.has('ArrowDown')) iz += 1
@@ -106,9 +122,9 @@ export class Player {
     const gy = zone.heightAt(this.pos.x, this.pos.z)
     this.pos.y += (gy - this.pos.y) * Math.min(1, dt * 14)
 
-    this.model.position.copy(this.pos)
+    this.root.position.copy(this.pos)
     this.model.rotation.y = this.yaw
-    animatePerson(this.model, this.speed, performance.now() / 1000)
+    animateCharacter(this.model, this.speed, performance.now() / 1000)
 
     // camera sits behind the player, orbiting by yaw/pitch
     const head = new THREE.Vector3(this.pos.x, this.pos.y + 1.55, this.pos.z)

@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "partykit": "^0.0.115",
+    "partysocket": "^1.0.3",
     "three": "0.170.0"
   },
   "devDependencies": {

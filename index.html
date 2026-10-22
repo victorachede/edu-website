@@ -1,47 +1,53 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Frontend Mentor | Order summary card</title>
-    <link rel="stylesheet" href="app.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&display=swap"
-      rel="stylesheet"
-    />
-
-  </head>
-  <body>
-    <div class="page">
-      <div class="order-card">
-        <div class="order-img">
-          <img src="order-summary-component-main/images/illustration-hero.svg">
-          <div class="order-text">
-            <h1>Order Summary</h1>
-            <p>You can now listen to millions of songs, <br>audiobooks,and podcasts on any device  <br>anywhere you like!</p>
-            <div class="order-plan">
-              <div class="img-container">
-                <img src="order-summary-component-main/images/icon-music.svg" alt="">
-              </div>
-              <div>
-                <p class="txt-a">Annual Plan</p>
-                <p class="txt-b">$59.99/year</p>
-              </div>
-              <div>
-                <p class="txt-c">Change</p>
-              </div>
-            </div>
-            <div class="order-buttons">
-              <div class="btn1">Proceed to Payment</div>
-              <div class="btn2">Cancel Order </div>
-            </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Benue Life</title>
+  <meta name="description" content="Walk through Makurdi in 3D. Wurukum Market, the Old Bridge over the River Benue, and more." />
+  <style>
+    html,body{margin:0;height:100%;background:#0b0b0c;color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}
+    canvas{display:block}
+    #hud{position:fixed;inset:0;pointer-events:none}
+    #vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(20,10,0,.34) 100%)}
+    #top{position:absolute;left:16px;top:14px;display:flex;gap:10px;align-items:center;pointer-events:auto}
+    .brand{font-weight:700;letter-spacing:-.02em;font-size:18px;background:rgba(15,15,15,.55);backdrop-filter:blur(10px);padding:9px 14px;border-radius:14px}
+    .brand b{color:#3fbf7f}
+    .tabs{display:flex;gap:6px;background:rgba(15,15,15,.55);backdrop-filter:blur(10px);padding:5px;border-radius:14px}
+    .tabs button{all:unset;cursor:pointer;padding:7px 13px;border-radius:10px;font-size:13px;font-weight:600;color:#d8d8d2}
+    .tabs button.on{background:#fff;color:#111}
+    #place{position:absolute;left:16px;bottom:16px;max-width:360px;background:rgba(15,15,15,.55);backdrop-filter:blur(10px);padding:12px 14px;border-radius:14px;font-size:13px;line-height:1.45;color:#e6e6e0}
+    #place h2{margin:0 0 4px;font-size:15px;color:#fff}
+    #help{position:absolute;right:16px;bottom:16px;background:rgba(15,15,15,.55);backdrop-filter:blur(10px);padding:10px 14px;border-radius:14px;font-size:12px;color:#cfcfc8}
+    #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:radial-gradient(circle at 50% 40%,#1c2a22,#0b0b0c 70%);z-index:5;text-align:center;padding:24px}
+    #start h1{margin:0;font-size:clamp(34px,7vw,64px);letter-spacing:-.04em}
+    #start h1 b{color:#3fbf7f}
+    #start p{margin:0;color:#b8b8b0;max-width:440px}
+    #go{all:unset;cursor:pointer;background:#3fbf7f;color:#06130c;font-weight:700;padding:14px 26px;border-radius:14px;font-size:16px}
+    #bar{width:220px;height:4px;background:#222;border-radius:4px;overflow:hidden}
+    #bar i{display:block;height:100%;width:0;background:#3fbf7f;transition:width .2s}
+    #joy{position:fixed;left:22px;bottom:90px;width:120px;height:120px;border-radius:60px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);touch-action:none;display:none;pointer-events:auto}
+    #joy i{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:20px;background:rgba(255,255,255,.4)}
+    @media (pointer:coarse){#joy{display:block}#help{display:none}}
+  </style>
+</head>
+<body>
+  <div id="start">
+    <h1>Benue <b>Life</b></h1>
+    <p>Walk through Makurdi in 3D. Start at Wurukum Market or the Old Bridge over the River Benue.</p>
+    <div id="bar"><i></i></div>
+    <button id="go" disabled>Loading…</button>
+  </div>
+  <div id="vig"></div>
+  <div id="hud">
+    <div id="top">
+      <div class="brand">Benue <b>Life</b></div>
+      <div class="tabs"><button data-z="market" class="on">Wurukum Market</button><button data-z="bridge">Old Bridge</button></div>
     </div>
-  </body>
+    <div id="place"></div>
+    <div id="help">WASD move · Shift run · drag to look · scroll to zoom</div>
+    <div id="joy"><i></i></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
 </html>

@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { DEFAULT_LOOK } from './character.js'
 import { buildAvatar, tickAvatar, disposeAvatar } from './avatar.js'
+import { createBody, stepBody } from './movement.js'
 
 // Third-person walker: WASD/arrows or a touch joystick, drag to orbit, wheel to zoom.
 export class Player {
@@ -18,11 +19,18 @@ export class Player {
     this.root = new THREE.Group()
     this.look = { ...DEFAULT_LOOK }
     this.frozen = false
+    this.body = createBody()
+    this.grounded = true
+    this.jumpPressed = false
+    this.jumpHeld = false
     this.setLook(this.look)
     this.dom = dom
 
-    addEventListener('keydown', (e) => { this.keys.add(e.code); if (e.code === 'Space') e.preventDefault() })
-    addEventListener('keyup', (e) => this.keys.delete(e.code))
+    addEventListener('keydown', (e) => {
+      if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) this.jumpPressed = true; this.jumpHeld = true }
+      this.keys.add(e.code)
+    })
+    addEventListener('keyup', (e) => { if (e.code === 'Space') this.jumpHeld = false; this.keys.delete(e.code) })
     addEventListener('blur', () => this.keys.clear())
 
     let drag = null
@@ -42,6 +50,14 @@ export class Player {
     addEventListener('wheel', (e) => {
       this.camDist = THREE.MathUtils.clamp(this.camDist + e.deltaY * 0.004, 2.2, 14)
     }, { passive: true })
+
+    const jumpBtn = document.getElementById('jump')
+    if (jumpBtn) {
+      jumpBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); this.jumpPressed = true; this.jumpHeld = true })
+      const up = () => { this.jumpHeld = false }
+      jumpBtn.addEventListener('pointerup', up)
+      jumpBtn.addEventListener('pointercancel', up)
+    }
 
     const joy = document.getElementById('joy')
     if (joy) {
@@ -74,6 +90,7 @@ export class Player {
 
   place(zone) {
     this.pos.set(zone.spawn.x, zone.heightAt(zone.spawn.x, zone.spawn.z), zone.spawn.z)
+    this.body = createBody(this.pos.x, this.pos.y, this.pos.z)
     this.yaw = zone.spawn.yaw
     this.camYaw = zone.spawn.yaw
     this.camPitch = 0.26
@@ -96,32 +113,27 @@ export class Player {
     iz += this.joy.y
     const mag = Math.min(1, Math.hypot(ix, iz))
     const run = this.keys.has('ShiftLeft') || this.keys.has('ShiftRight') || Math.hypot(this.joy.x, this.joy.y) > 0.85
-    const target = mag * (run ? 4.6 : 2.2)
-    this.speed += (target - this.speed) * Math.min(1, dt * 10)
-
+    // camera-relative wanted direction, then the shared movement step does the rest
+    let dx = 0, dz = 0
     if (mag > 0.05) {
-      const dirYaw = Math.atan2(ix, iz) + this.camYaw // camera-relative
-      const dx = Math.sin(dirYaw), dz = Math.cos(dirYaw)
-      const nx = this.pos.x + dx * this.speed * dt * -1
-      const nz = this.pos.z + dz * this.speed * dt * -1
-      const next = { x: nx, z: nz }
-      zone.colliders.resolve(next, 0.42)
-      if (!(zone.isBlocked && zone.isBlocked(next.x, next.z))) {
-        this.pos.x = next.x
-        this.pos.z = next.z
-      }
+      const dirYaw = Math.atan2(ix, iz) + this.camYaw
+      dx = -Math.sin(dirYaw) * mag
+      dz = -Math.cos(dirYaw) * mag
+    }
+    const body = this.body
+    body.x = this.pos.x; body.y = this.pos.y; body.z = this.pos.z
+    const r = stepBody(body, { dx, dz, run, jumpPressed: this.jumpPressed, jumpHeld: this.jumpHeld }, zone, dt)
+    this.jumpPressed = false
+    this.pos.set(body.x, body.y, body.z)
+    this.speed = r.speed
+    this.grounded = r.grounded
+    if (r.speed > 0.3) {
       // face where we're heading
-      const want = Math.atan2(-dx, -dz)
+      const want = Math.atan2(-body.vx, -body.vz)
       let d = want - this.yaw
       d = Math.atan2(Math.sin(d), Math.cos(d))
       this.yaw += d * Math.min(1, dt * 12)
     }
-    const b = zone.bounds
-    this.pos.x = THREE.MathUtils.clamp(this.pos.x, b.x0, b.x1)
-    this.pos.z = THREE.MathUtils.clamp(this.pos.z, b.z0, b.z1)
-
-    const gy = zone.heightAt(this.pos.x, this.pos.z)
-    this.pos.y += (gy - this.pos.y) * Math.min(1, dt * 14)
 
     this.root.position.copy(this.pos)
     this.model.rotation.y = this.yaw

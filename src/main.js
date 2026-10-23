@@ -4,6 +4,7 @@ import { Player } from './lib/player.js'
 import { Net } from './lib/net.js'
 import { createMarket } from './zones/market.js'
 import { createBridge } from './zones/bridge.js'
+import { createWurukum } from './zones/wurukum.js'
 import { createCreator, loadProfile, saveProfile } from './ui.js'
 import { listCharacters } from './lib/models.js'
 
@@ -41,7 +42,7 @@ let zone = null
 
 function load(id) {
   if (zone) scene.remove(zone.group)
-  if (!zones[id]) zones[id] = id === 'market' ? createMarket({ renderer }) : createBridge({ renderer, sunDir })
+  if (!zones[id]) zones[id] = id === 'market' ? createMarket({ renderer }) : id === 'wurukum' ? createWurukum({ renderer, sunDir }) : createBridge({ renderer, sunDir })
   zone = zones[id]
   scene.add(zone.group)
   scene.fog.density = zone.fogDensity
@@ -131,7 +132,7 @@ function frame() {
 // Build the first place on the next frame so the loading bar can paint.
 bar.style.width = '40%'
 setTimeout(() => {
-  load(params.get('zone') === 'bridge' ? 'bridge' : 'market')
+  load(['bridge', 'wurukum'].includes(params.get('zone')) ? params.get('zone') : 'market')
   bar.style.width = '100%'
   loadingEl.remove()
   requestAnimationFrame(frame)
